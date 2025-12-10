@@ -417,7 +417,7 @@
 
         // --- HELPER FUNCTIONS ---
         const el = (id) => document.getElementById(id);
-        const showLoading = (show, text='กำลังเข้าสู่ระบบ') => {
+        const showLoading = (show, text='กำลังประมวลผล') => {
             if(el('loading-text')) el('loading-text').innerText = text;
             el('loading').classList.toggle('hidden', !show);
         };
