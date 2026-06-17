@@ -772,7 +772,27 @@
         
         // --- SEARCH & MGMT (RESTORED) ---
         function renderSearchPage(c){ c.innerHTML=`<div class="bg-white rounded-xl shadow p-4"><h3 class="font-bold text-lg mb-4 text-green-700">ค้นหานักเรียน</h3><label class="block text-sm font-bold mb-2">เลือกระดับชั้น</label><select id="class-filter" onchange="filterStudents()" class="w-full p-2 border rounded mb-4"><option value="">-- เลือกระดับชั้น --</option>${generateClassOptions()}</select><div id="student-list" class="space-y-2 max-h-96 overflow-y-auto"><p class="text-gray-400 text-center py-4">กรุณาเลือกระดับชั้น</p></div></div>`;}
-        function generateClassOptions(){let o='';for(let i=1;i<=6;i++)for(let j=1;j<=7;j++)o+=`<option value="ม.${i}/${j}">ม.${i}/${j}</option>`;return o;}
+        
+        function generateClassOptions() {
+            if (studentsList && studentsList.length > 0) {
+                // กรองข้อมูลระดับชั้นที่ไม่ซ้ำกันจาก studentsList (ซึ่งดึงมาจากคอลัมน์ในชีทข้อมูลนักเรียน)
+                const uniqueClasses = [...new Set(studentsList.map(s => s.class).filter(c => c && String(c).trim() !== ''))];
+                
+                // เรียงลำดับชั้นเรียนให้สวยงาม
+                uniqueClasses.sort((a, b) => {
+                    const cA = parseClass(a);
+                    const cB = parseClass(b);
+                    if (cA.grade !== cB.grade) return cA.grade - cB.grade;
+                    if (cA.room !== cB.room) return cA.room - cB.room;
+                    return String(a).localeCompare(String(b));
+                });
+                
+                return uniqueClasses.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            // ค่าเริ่มต้นหากยังโหลดข้อมูลไม่เสร็จ
+            let o='';for(let i=1;i<=6;i++)for(let j=1;j<=7;j++)o+=`<option value="ม.${i}/${j}">ม.${i}/${j}</option>`;return o;
+        }
+
         async function filterStudents(){ const c=el('class-filter').value;if(!c)return;if(studentsList.length===0)await loadAllStudents();const f=studentsList.filter(s=>s.class===c);el('student-list').innerHTML=f.length?f.map(s=>`<div onclick="selectStudentForRecord('${s.id}','${s.name}','${s.class}')" class="p-3 border rounded hover:bg-green-50 cursor-pointer flex justify-between"><div><div class="font-bold text-green-800">${s.name}</div><div class="text-xs text-gray-500">${s.id}</div></div></div>`).join(''):'<p class="text-center text-red-500">ไม่พบข้อมูล</p>';}
         function selectStudentForRecord(i,n,c){selectedStudent={id:i,name:n,class:c};showMenu('record');}
         function clearSelectedStudent(){selectedStudent=null;renderManualRecordPage(el('main-content'));}
